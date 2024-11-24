@@ -4,3 +4,4 @@ __pychache__/
 *.pyo
 mentions.json
 old/
+pg.py
