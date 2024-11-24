@@ -13,7 +13,7 @@ import asyncio
 from typing import Optional, Dict, List
 import time
 
-wait_on_rate_limit = False
+wait_on_rate_limit = True
 
 # Load environment variables
 load_dotenv()
@@ -67,12 +67,25 @@ class TwitterClient:
             bearer_token=BEARER_TOKEN,
             wait_on_rate_limit=wait_on_rate_limit    # Enable/Disable rate limit
         )
-        self._user_id = 'Roast_Bob_AI'
+        self._user_id = None
         self.redis_client = redis.from_url(REDIS_URL)
         self.producer = KafkaProducer(
             bootstrap_servers=KAFKA_SERVERS,
             value_serializer=lambda v: json.dumps(v).encode('utf-8')
         )
+
+    @property
+    def user_id(self):
+        if not self._user_id:
+            cached_id = self.redis_client.get(f"twitter:user_id:{USERNAME}")
+            if cached_id:
+                self._user_id = cached_id.decode('utf-8')
+            else:
+                user = self.client.get_user(username=USERNAME)
+                print(str(user.data.id))
+                self._user_id = str(user.data.id)
+                self.redis_client.set(f"twitter:user_id:{USERNAME}", self._user_id)
+        return self._user_id
 
     async def get_mentions(self) -> List[Dict]:
         """Fetch mentions from Twitter"""
@@ -84,10 +97,20 @@ class TwitterClient:
                 id=self.user_id,
                 since_id=last_mention_id,
                 tweet_fields=['created_at', 'author_id', 'conversation_id'],
-                max_results=1,
+                max_results=5,
                 expansions=['referenced_tweets.id']
             )
-            print(mentions)
+            # Print rate limit information
+            if hasattr(mentions, '_headers'):
+                rate_limit = {
+                    'limit': mentions._headers.get('x-rate-limit-limit'),
+                    'remaining': mentions._headers.get('x-rate-limit-remaining'),
+                    'reset': mentions._headers.get('x-rate-limit-reset')
+                }
+                print(f"Rate Limit Info: {rate_limit}")
+                log_info(f"Rate Limits - Remaining: {rate_limit['remaining']}/{rate_limit['limit']}, " 
+                        f"Reset at: {rate_limit['reset']}")
+                print(mentions)
 
             if not mentions.data:
                 return []
@@ -104,7 +127,8 @@ class TwitterClient:
                     'author_id': str(mention.author_id),
                     'conversation_id': str(mention.conversation_id),
                     'created_at': mention.created_at.isoformat() if mention.created_at else None,
-                    'processed_at': datetime.now().isoformat()
+                    'processed_at': datetime.now().isoformat(),
+                    'referenced_tweet_id': mention.referenced_tweets[0].id if mention.referenced_tweets else None
                 }
 
                 if not newest_id or int(mention.id) > int(newest_id):
@@ -115,7 +139,6 @@ class TwitterClient:
             if newest_id:
                 self.redis_client.set(f"twitter:last_mention:{USERNAME}", newest_id)
 
-            append_to_json('mentions.json', mentions_data)
             return mentions_data
 
         except Exception as e:

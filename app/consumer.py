@@ -61,11 +61,22 @@ class TwitterReplier:
             log_error(f"Error replying to tweet {tweet_id}: {str(e)}")
             return False
 
+def fetch_referenced_tweet_text(twitter_client, referenced_tweet_id: str):
+    try:
+        tweet_data = twitter_client.get_tweet(referenced_tweet_id, tweet_fields=['text'])
+        return tweet_data['text']
+    except Exception as e:
+        log_error(f"Error fetching referenced tweet: {str(e)}")
+        return None
+
 def process_mention(mention: dict, twitter_client: TwitterReplier):
     global processed_count, error_count
     try:
         tweet_id = mention['id']
         tweet_text = mention['text']
+        referenced_tweet_id = mention['referenced_tweet_id']
+
+        tweet_text = fetch_referenced_tweet_text(twitter_client, referenced_tweet_id)
         
         roast = generate_roast(ROAST_STYLE, tweet_text)
         success = twitter_client.reply_to_tweet(tweet_id, roast)
@@ -80,6 +91,20 @@ def process_mention(mention: dict, twitter_client: TwitterReplier):
     except Exception as e:
         error_count += 1
         log_error(f"Error processing mention: {str(e)}")
+
+flag=False
+if flag:
+    process_mention(
+            {
+                "id": "1860721037559885938",
+                "text": "@Roast_Bob_AI roast this tweet in shakespeare style",
+                "created_at": "2024-11-23T14:35:43+00:00",
+                "author_id": "966993210412212224",
+                "saved_at": "2024-11-23T22:15:07.988114",
+                "referenced_tweet_id": "1860345726339023069"
+            }
+            , twitter_client=TwitterReplier())
+    flag=False
 
 def kafka_consumer_loop():
     """Background task for consuming Kafka messages"""
@@ -200,13 +225,13 @@ async def get_metrics():
         "roast_style": ROAST_STYLE
     }
 
-if __name__ == "__main__":
-    process_mention(
-        {
-            "id": "1860331398818840725",
-            "text": "@Roast_Bob_AI roast this in samay raina style",
-            "created_at": "2024-11-23T14:35:43+00:00",
-            "author_id": "966993210412212224",
-            "saved_at": "2024-11-23T22:15:07.988114"
-        }
-        , twitter_client=TwitterReplier())
+# if __name__ == "__main__":
+#     process_mention(
+#         {
+#             "id": "1860331398818840725",
+#             "text": "@Roast_Bob_AI roast this in samay raina style",
+#             "created_at": "2024-11-23T14:35:43+00:00",
+#             "author_id": "966993210412212224",
+#             "saved_at": "2024-11-23T22:15:07.988114"
+#         }
+#         , twitter_client=TwitterReplier())
