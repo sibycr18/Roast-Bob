@@ -13,7 +13,7 @@ import asyncio
 from typing import Optional, Dict, List
 import time
 
-wait_on_rate_limit = True
+wait_on_rate_limit = False
 
 # Load environment variables
 load_dotenv()
@@ -67,24 +67,12 @@ class TwitterClient:
             bearer_token=BEARER_TOKEN,
             wait_on_rate_limit=wait_on_rate_limit    # Enable/Disable rate limit
         )
-        self._user_id = None
+        self._user_id = 'Roast_Bob_AI'
         self.redis_client = redis.from_url(REDIS_URL)
         self.producer = KafkaProducer(
             bootstrap_servers=KAFKA_SERVERS,
             value_serializer=lambda v: json.dumps(v).encode('utf-8')
         )
-
-    @property
-    def user_id(self):
-        if not self._user_id:
-            cached_id = self.redis_client.get(f"twitter:user_id:{USERNAME}")
-            if cached_id:
-                self._user_id = cached_id.decode('utf-8')
-            else:
-                user = self.client.get_user(username=USERNAME)
-                self._user_id = str(user.data.id)
-                self.redis_client.set(f"twitter:user_id:{USERNAME}", self._user_id)
-        return self._user_id
 
     async def get_mentions(self) -> List[Dict]:
         """Fetch mentions from Twitter"""
@@ -96,9 +84,10 @@ class TwitterClient:
                 id=self.user_id,
                 since_id=last_mention_id,
                 tweet_fields=['created_at', 'author_id', 'conversation_id'],
-                max_results=10,
+                max_results=1,
                 expansions=['referenced_tweets.id']
             )
+            print(mentions)
 
             if not mentions.data:
                 return []
