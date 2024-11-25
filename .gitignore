@@ -7,3 +7,4 @@ old/
 pg.py
 ratecheck.py
 README-copy.md
+.DS_Store
