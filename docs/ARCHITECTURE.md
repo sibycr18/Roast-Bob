@@ -5,6 +5,10 @@
 
 The Twitter Roaster Bot is built using a microservices architecture pattern, separating the concerns of mention monitoring and roast generation into distinct services. This design allows for better scalability, maintainability, and reliability.
 
+## Architecture Diagram
+![architecture](https://github.com/user-attachments/assets/e992c812-b717-4a37-a5a7-3b1fbe1c4156)
+
+
 ## Components
 
 ### 1. Producer Service (producer.py)
