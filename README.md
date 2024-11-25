@@ -57,7 +57,7 @@ cd Roast-Bob
 pip install -r requirements.txt
 ```
 
-For detailed setup instructions, see [Setup Documentation](docs/setup.md)
+For detailed setup instructions, see [Setup Documentation](docs/SETUP.md)
 
 ## 🎮 Usage
 
