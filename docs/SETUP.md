@@ -14,7 +14,7 @@ This guide provides detailed instructions for setting up and running the Twitter
 ### API Credentials
 
 1. Twitter Developer Account:
-   - Create a project in the [Twitter Developer Portal](https://developer.twitter.com/en/portal/dashboard)
+   - Create a project in the [Twitter Developer Portal](https://developer.x.com/en/portal/dashboard)
    - Generate API keys and tokens
    - Enable OAuth 2.0
    - Add required permissions: Read and Write
