@@ -9,7 +9,7 @@ def monitor_twitter_mentions(bootstrap_servers='localhost:9092', topic='twitter.
         bootstrap_servers=bootstrap_servers,
         value_deserializer=lambda m: json.loads(m.decode('utf-8')),
         group_id='monitor_group',  # Different from 'twitter_roaster_group'
-        auto_offset_reset='earliest',  # To see all messages
+        auto_offset_reset='latest',  # earliest: To see all messages | latest: To see new messages
         enable_auto_commit=False  # Don't commit offsets to keep messages
     )
     
