@@ -67,7 +67,7 @@ class TwitterClient:
             bearer_token=BEARER_TOKEN,
             wait_on_rate_limit=wait_on_rate_limit    # Enable/Disable rate limit
         )
-        self._user_id = 1860215141180276736
+        self._user_id = "1860215141180276736"
         self.redis_client = redis.from_url(REDIS_URL)
         self.producer = KafkaProducer(
             bootstrap_servers=KAFKA_SERVERS,
@@ -127,7 +127,7 @@ class TwitterClient:
                     'conversation_id': str(mention.conversation_id),
                     'created_at': mention.created_at.isoformat() if mention.created_at else None,
                     'processed_at': datetime.now().isoformat(),
-                    'referenced_tweet_id': mention.referenced_tweets[0].id if mention.referenced_tweets else None
+                    'referenced_tweet_id': str(mention.referenced_tweets[0].id) if mention.referenced_tweets else None
                 }
 
                 if not newest_id or int(mention.id) > int(newest_id):

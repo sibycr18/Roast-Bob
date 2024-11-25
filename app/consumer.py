@@ -61,13 +61,13 @@ class TwitterReplier:
             log_error(f"Error replying to tweet {tweet_id}: {str(e)}")
             return False
 
-def fetch_referenced_tweet_text(twitter_client, referenced_tweet_id: str):
-    try:
-        tweet_data = twitter_client.get_tweet(referenced_tweet_id, tweet_fields=['text'])
-        return tweet_data['text']
-    except Exception as e:
-        log_error(f"Error fetching referenced tweet: {str(e)}")
-        return None
+    def fetch_referenced_tweet_text(self, referenced_tweet_id: str):
+        try:
+            tweet_data = self.client.get_tweet(referenced_tweet_id, tweet_fields=['text'])
+            return tweet_data['text']
+        except Exception as e:
+            log_error(f"Error fetching referenced tweet: {str(e)}")
+            return None
 
 def process_mention(mention: dict, twitter_client: TwitterReplier):
     global processed_count, error_count
@@ -76,7 +76,7 @@ def process_mention(mention: dict, twitter_client: TwitterReplier):
         tweet_text = mention['text']
         referenced_tweet_id = mention['referenced_tweet_id']
 
-        tweet_text = fetch_referenced_tweet_text(twitter_client, referenced_tweet_id)
+        tweet_text = twitter_client.fetch_referenced_tweet_text(referenced_tweet_id)
         
         roast = generate_roast(ROAST_STYLE, tweet_text)
         success = twitter_client.reply_to_tweet(tweet_id, roast)
@@ -92,19 +92,6 @@ def process_mention(mention: dict, twitter_client: TwitterReplier):
         error_count += 1
         log_error(f"Error processing mention: {str(e)}")
 
-flag=False
-if flag:
-    process_mention(
-            {
-                "id": "1860721037559885938",
-                "text": "@Roast_Bob_AI roast this tweet in shakespeare style",
-                "created_at": "2024-11-23T14:35:43+00:00",
-                "author_id": "966993210412212224",
-                "saved_at": "2024-11-23T22:15:07.988114",
-                "referenced_tweet_id": "1860345726339023069"
-            }
-            , twitter_client=TwitterReplier())
-    flag=False
 
 def kafka_consumer_loop():
     """Background task for consuming Kafka messages"""
@@ -128,10 +115,12 @@ def kafka_consumer_loop():
             try:
                 # Use poll() instead of iteration to allow for clean shutdown
                 messages = consumer.poll(timeout_ms=1000)
-                
+                print(f"{messages=}") if messages else None
                 for topic_partition, partition_messages in messages.items():
+
                     for message in partition_messages:
                         mention = message.value
+                        print(f"\n{mention=}")
                         log_info(f"Received mention: {mention['id']}")
                         process_mention(mention, twitter_client)
                         time.sleep(2)  # Rate limiting
