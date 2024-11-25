@@ -1,9 +1,11 @@
 [
-  {
-    "id": "1860331398818840725",
-    "text": "@Roast_Bob_AI roast this in samay raina style",
-    "created_at": "2024-11-23T14:35:43+00:00",
-    "author_id": "966993210412212224",
-    "saved_at": "2024-11-23T22:15:07.988114"
-  }
-]
+    {
+      "id": "1860861236134715764",
+      "text": "@Roast_Bob_AI roast this in shakspeare style",
+      "author_id": "966993210412212224",
+      "conversation_id": "1860218845732175997",
+      "created_at": "2024-11-24T16:46:08+00:00",
+      "processed_at": "2024-11-25T06:25:28.113235",
+      "referenced_tweet_id": "1860349154935078968"
+    }
+  ]
