@@ -57,25 +57,7 @@ cd Roast-Bob
 pip install -r requirements.txt
 ```
 
-For detailed setup instructions, see [Setup Documentation](docs/SETUP.md)
-
-## 🎮 Usage
-
-1. Start the infrastructure services:
-```bash
-docker-compose up -d
-```
-
-2. Start the producer service:
-```bash
-uvicorn producer:app --reload --port 8000
-```
-
-3. Start the consumer service:
-```bash
-uvicorn consumer:app --reload --port 8001
-```
-*Note: All of the above should be run in seperate terminals*
+For detailed setup and usage instructions, see [Setup Documentation](docs/SETUP.md)
 
 
 ## 👥 Contributing
