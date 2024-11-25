@@ -19,7 +19,7 @@ The service consists of two main components:
 1. **Producer Service**: Monitors Twitter for mentions and publishes them to Kafka
 2. **Consumer Service**: Processes mentions from Kafka and generates roasts using Together AI
 
-For detailed architecture information, see [Architecture Documentation](docs/architecture.md)
+For detailed architecture information, see [Architecture Documentation](docs/ARCHITECTURE.md)
 
 ## 🚀 Getting Started
 
