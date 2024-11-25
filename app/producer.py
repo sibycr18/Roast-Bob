@@ -67,13 +67,12 @@ class TwitterClient:
             bearer_token=BEARER_TOKEN,
             wait_on_rate_limit=wait_on_rate_limit    # Enable/Disable rate limit
         )
-        self._user_id = None
+        self._user_id = 1860215141180276736
         self.redis_client = redis.from_url(REDIS_URL)
         self.producer = KafkaProducer(
             bootstrap_servers=KAFKA_SERVERS,
             value_serializer=lambda v: json.dumps(v).encode('utf-8')
         )
-
     @property
     def user_id(self):
         if not self._user_id:
