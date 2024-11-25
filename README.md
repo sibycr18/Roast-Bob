@@ -1,80 +1,87 @@
-**Twitter Roasting Bot**
-=========================
 
-**Table of Contents**
------------------
+# Roast_Bob: Twitter Roaster Bot
 
-1. [Project Overview](#project-overview)
-2. [How it Works](#how-it-works)
-3. [Prerequisites](#prerequisites)
-4. [Setup](#setup)
-5. [Environment Variables](#environment-variables)
-6. [Running the Bot](#running-the-bot)
-7. [Project Structure](#project-structure)
-8. [Troubleshooting](#troubleshooting)
+A scalable Twitter agent service that automatically generates witty roasts in response to mentions using Together AI's LLaMA model. The service uses a microservices architecture with Kafka for message queuing, Redis for caching, and FastAPI for API endpoints.
 
-**Project Overview**
--------------------
+## 🌟 Features
 
-The Twitter Roasting Bot is a Python-based project that uses natural language processing (NLP) and machine learning (ML) to generate humorous roasts in response to tweets that mention the bot. The bot is designed to engage with users on Twitter and provide a fun and entertaining experience.
+- Real-time monitoring of Twitter mentions
+- AI-powered roast generation using Together AI's LLaMA model
+- Scalable microservices architecture
+- Rate limiting and caching with Redis
+- Kafka-based message queue for reliable processing
+- RESTful APIs for monitoring and control
+- Docker support for easy deployment
 
-**How it Works**
-----------------
+## 🏗️ Architecture
 
-Here's a high-level overview of how the bot works:
+The service consists of two main components:
+1. **Producer Service**: Monitors Twitter for mentions and publishes them to Kafka
+2. **Consumer Service**: Processes mentions from Kafka and generates roasts using Together AI
 
-1. **Tweet Collection**: The bot uses the Twitter API to collect tweets that mention the bot's handle.
-2. **Text Analysis**: The bot uses NLP techniques to analyze the text of the collected tweets and identify the user's intent and sentiment.
-3. **Roast Generation**: Based on the analysis, the bot generates a humorous roast using a combination of machine learning algorithms and pre-defined templates.
-4. **Response**: The bot responds to the original tweet with the generated roast.
+For detailed architecture information, see [Architecture Documentation](docs/architecture.md)
 
-**Prerequisites**
----------------
+## 🚀 Getting Started
 
-* Python 3.x
-* pip
-* Twitter API keys (consumer key, consumer secret, access token, access token secret)
-* Together AI credentials (API key, API secret)
+### Prerequisites
 
-**Setup**
---------
+- Python 3.8+
+- Docker and Docker Compose
+- Twitter Developer Account with API credentials
+- Together AI API key
 
-1. Clone the repository: `git clone https://github.com/your-username/twitter-roasting-bot.git`
-2. Install dependencies: `pip install -r requirements.txt`
-3. Create a new file named `.env` in the root directory of the project
-4. Add your Twitter API keys and Together AI credentials to the `.env` file.
+### Environment Variables
 
-**Environment Variables**
--------------------------
+Create a `.env` file with the following variables:
 
-```makefile
-TWITTER_CONSUMER_KEY=your-consumer-key
-TWITTER_CONSUMER_SECRET=your-consumer-secret
-TWITTER_ACCESS_TOKEN=your-access-token
-TWITTER_ACCESS_TOKEN_SECRET=your-access-token-secret
-TOGETHER_AI_API_KEY=your-together-ai-api-key
+```env
+TOGETHER_API_KEY=your_together_ai_key
+TWITTER_API_KEY=your_twitter_api_key
+TWITTER_API_SECRET=your_twitter_api_secret
+TWITTER_ACCESS_TOKEN=your_access_token
+TWITTER_ACCESS_TOKEN_SECRET=your_access_token_secret
+TWITTER_BEARER_TOKEN_CONSUMER=your_bearer_token_for_consumer
+TWITTER_BEARER_TOKEN_PRODUCER=your_bearer_token_for_producer
 ```
 
-The project uses environment variables to store sensitive information such as Twitter API keys and Together AI credentials. You can set these variables in the `.env` file or as system environment variables.
+### Installation
 
-**Running the Bot**
-------------------
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/Roast-Bob.git
+cd Roast-Bob
+```
 
-1. Run the bot: `uvicorn main:app --reload`
-2. The bot will start listening for mentions on Twitter and respond with roasts
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-**Project Structure**
----------------------
+For detailed setup instructions, see [Setup Documentation](docs/setup.md)
 
-* `main.py`: The main application file that runs the bot
-* `twitter.py`: A module that handles Twitter API interactions
-* `together_ai.py`: A module that handles Together AI API interactions
-* `roast.py`: A module that generates roasts
-* `requirements.txt`: A file that lists the project dependencies
+## 🎮 Usage
 
-**Troubleshooting**
-------------------
+1. Start the infrastructure services:
+```bash
+docker-compose up -d
+```
 
-* If you encounter issues with the bot, check the logs for errors
-* Make sure your Twitter API keys and Together AI credentials are correct
-* If you're still having issues, feel free to open an issue on the GitHub repository
+2. Start the producer service:
+```bash
+uvicorn producer:app --reload --port 8000
+```
+
+3. Start the consumer service:
+```bash
+uvicorn consumer:app --reload --port 8001
+```
+*Note: All of the above should be run in seperate terminals*
+
+
+## 👥 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
