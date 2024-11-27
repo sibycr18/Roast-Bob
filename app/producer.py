@@ -81,7 +81,6 @@ class TwitterClient:
                 self._user_id = cached_id.decode('utf-8')
             else:
                 user = self.client.get_user(username=USERNAME)
-                # print(str(user.data.id))
                 self._user_id = str(user.data.id)
                 self.redis_client.set(f"twitter:user_id:{USERNAME}", self._user_id)
         return self._user_id
@@ -124,8 +123,6 @@ class TwitterClient:
             mentions_data = []
             newest_id = last_mention_id
 
-            # print(mentions.data)
-
             for mention in mentions.data:
                 referenced_tweet_text = None
                 referenced_tweet_id = None
@@ -153,7 +150,6 @@ class TwitterClient:
             if newest_id:
                 self.redis_client.set(f"twitter:last_mention:{USERNAME}", newest_id)
 
-            # print(f"{mentions_data=}")
             return mentions_data
 
         except Exception as e:

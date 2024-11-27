@@ -60,25 +60,12 @@ class TwitterReplier:
             log_error(f"Error replying to tweet {tweet_id}: {str(e)}")
             return False
 
-    # def fetch_referenced_tweet_text(self, referenced_tweet_id: str):
-    #     try:
-    #         tweet_data = self.client.get_tweet(referenced_tweet_id, tweet_fields=['text'])
-    #         print(f"{tweet_data=}")
-    #         print(tweet_data.data['text'])
-    #         return tweet_data.data['text']
-    #     except Exception as e:
-    #         log_error(f"Error fetching referenced tweet: {str(e)}")
-    #         return None
-
 def process_mention(mention: dict, twitter_client: TwitterReplier):
     global processed_count, error_count
     try:
         tweet_id = mention['id']
         tweet_text = mention['text']
         referenced_tweet_text = mention['referenced_tweet_text']
-        # referenced_tweet_text = twitter_client.fetch_referenced_tweet_text(referenced_tweet_id)
-        # print(f"{referenced_tweet_id=}")
-        # print(f"{referenced_tweet_text=}")
         roast = generate_roast(tweet_text, referenced_tweet_text)
         success = twitter_client.reply_to_tweet(tweet_id, roast)
         
@@ -121,7 +108,6 @@ def kafka_consumer_loop():
 
                     for message in partition_messages:
                         mention = message.value
-                        # print(f"\n{mention=}")
                         log_info(f"Received mention: {mention['id']}")
                         process_mention(mention, twitter_client)
                         time.sleep(2)  # Rate limiting
@@ -213,14 +199,3 @@ async def get_metrics():
         "uptime": "Running" if is_consuming.is_set() else "Stopped",
         "kafka_topic": KAFKA_TOPIC
     }
-
-# if __name__ == "__main__":
-#     process_mention(
-#         {
-#             "id": "1860331398818840725",
-#             "text": "@Roast_Bob_AI roast this in samay raina style",
-#             "created_at": "2024-11-23T14:35:43+00:00",
-#             "author_id": "966993210412212224",
-#             "saved_at": "2024-11-23T22:15:07.988114"
-#         }
-#         , twitter_client=TwitterReplier())
