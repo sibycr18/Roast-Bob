@@ -66,13 +66,11 @@ REDIS_URL=redis://localhost:6379
 ROAST_STYLE=savage
 ```
 
-```
-Note for Buildathon Evaluators: Please contact me through whatsapp or call at +919526038363 or through email 'sibycr18@gmail.com' to obtain the bearer key of Roast_Bob_AI twitter handle and generate responses.
-```
+> [!IMPORTANT]
+> For Buildathon Evaluators: Please contact me through whatsapp or call at +919526038363 or through email 'sibycr18@gmail.com' to obtain the ACCESS KEYS of Roast_Bob_AI twitter handle and generate responses though that account.
 
-```
-Note: TWITTER_BEARER_TOKEN_CONSUMER and TWITTER_BEARER_TOKEN_CONSUMER can be the same. Use separate keys for rate limit concerns.
-```
+> [!TIP]
+> TWITTER_BEARER_TOKEN_CONSUMER and TWITTER_BEARER_TOKEN_CONSUMER can be the same. Use separate keys for rate limit concerns.
 
 ### 5. Infrastructure Setup
 
