@@ -63,7 +63,7 @@ TWITTER_BEARER_TOKEN_PRODUCER=your_bearer_token_for_producer
 
 # Username of the account which you are using to see the mentions and reply back
 # If this is not provided, the Roast_Bob_AI account will be used as default
-USERNAME=your_user_name
+TWITTER_USERNAME=your_user_name
 
 # Optional Configuration
 KAFKA_SERVERS=localhost:9092
