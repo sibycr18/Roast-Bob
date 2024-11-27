@@ -53,7 +53,6 @@ def generate_roast(style: str, tweet_text: str) -> str:
 
         # Use Together AI to generate the roast
         roast = generate_response(prompt)
-        print(f"{roast=}")
         log_info(f"Generated roast: {roast}")
         return roast.strip('"')
     except Exception as e:
