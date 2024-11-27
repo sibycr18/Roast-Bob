@@ -119,7 +119,6 @@ def kafka_consumer_loop():
             try:
                 # Use poll() instead of iteration to allow for clean shutdown
                 messages = consumer.poll(timeout_ms=1000)
-                print(f"{messages=}") if messages else None
                 for topic_partition, partition_messages in messages.items():
 
                     for message in partition_messages:
