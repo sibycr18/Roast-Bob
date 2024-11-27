@@ -20,7 +20,7 @@ load_dotenv()
 
 # Configuration
 BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN_PRODUCER')
-USERNAME = os.getenv('TWITTER_USERNAME')
+USERNAME = os.getenv('TWITTER_USERNAME', 'Roast_Bob_AI')
 KAFKA_SERVERS = os.getenv('KAFKA_SERVERS', 'localhost:9092')
 REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')
 KAFKA_TOPIC = 'twitter.mentions'
@@ -67,7 +67,7 @@ class TwitterClient:
             bearer_token=BEARER_TOKEN,
             wait_on_rate_limit=wait_on_rate_limit    # Enable/Disable rate limit
         )
-        self._user_id = "1860215141180276736"
+        self._user_id = None
         self.redis_client = redis.from_url(REDIS_URL)
         self.producer = KafkaProducer(
             bootstrap_servers=KAFKA_SERVERS,
