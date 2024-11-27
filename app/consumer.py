@@ -26,7 +26,6 @@ TWITTER_API_SECRET = os.getenv('TWITTER_API_SECRET')
 TWITTER_ACCESS_TOKEN = os.getenv('TWITTER_ACCESS_TOKEN')
 TWITTER_ACCESS_TOKEN_SECRET = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
 TWITTER_BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN_CONSUMER')
-ROAST_STYLE = os.getenv('ROAST_STYLE', 'savage')
 
 # Initialize FastAPI
 app = FastAPI(title="Twitter Roaster Consumer Service")
@@ -61,28 +60,26 @@ class TwitterReplier:
             log_error(f"Error replying to tweet {tweet_id}: {str(e)}")
             return False
 
-    def fetch_referenced_tweet_text(self, referenced_tweet_id: str):
-        try:
-            tweet_data = self.client.get_tweet(referenced_tweet_id, tweet_fields=['text'])
-            print(f"{tweet_data=}")
-            print(tweet_data.data['text'])
-            return tweet_data.data['text']
-        except Exception as e:
-            log_error(f"Error fetching referenced tweet: {str(e)}")
-            return None
+    # def fetch_referenced_tweet_text(self, referenced_tweet_id: str):
+    #     try:
+    #         tweet_data = self.client.get_tweet(referenced_tweet_id, tweet_fields=['text'])
+    #         print(f"{tweet_data=}")
+    #         print(tweet_data.data['text'])
+    #         return tweet_data.data['text']
+    #     except Exception as e:
+    #         log_error(f"Error fetching referenced tweet: {str(e)}")
+    #         return None
 
 def process_mention(mention: dict, twitter_client: TwitterReplier):
     global processed_count, error_count
     try:
         tweet_id = mention['id']
         tweet_text = mention['text']
-        referenced_tweet_id = mention['referenced_tweet_id']
-        print(f"{referenced_tweet_id=}")
-
-        tweet_text = twitter_client.fetch_referenced_tweet_text(referenced_tweet_id)
-        print(f"{tweet_text=}")
-        
-        roast = generate_roast(ROAST_STYLE, tweet_text)
+        referenced_tweet_text = mention['referenced_tweet_text']
+        # referenced_tweet_text = twitter_client.fetch_referenced_tweet_text(referenced_tweet_id)
+        # print(f"{referenced_tweet_id=}")
+        # print(f"{referenced_tweet_text=}")
+        roast = generate_roast(tweet_text, referenced_tweet_text)
         success = twitter_client.reply_to_tweet(tweet_id, roast)
         
         if success:
@@ -107,7 +104,8 @@ def kafka_consumer_loop():
             bootstrap_servers=KAFKA_SERVERS,
             value_deserializer=lambda m: json.loads(m.decode('utf-8')),
             group_id='twitter_roaster_group',
-            auto_offset_reset='latest'
+            auto_offset_reset='latest',
+            enable_auto_commit=False
         )
         
         twitter_client = TwitterReplier()
@@ -123,7 +121,7 @@ def kafka_consumer_loop():
 
                     for message in partition_messages:
                         mention = message.value
-                        print(f"\n{mention=}")
+                        # print(f"\n{mention=}")
                         log_info(f"Received mention: {mention['id']}")
                         process_mention(mention, twitter_client)
                         time.sleep(2)  # Rate limiting
@@ -213,8 +211,7 @@ async def get_metrics():
         "processed_mentions": processed_count,
         "errors": error_count,
         "uptime": "Running" if is_consuming.is_set() else "Stopped",
-        "kafka_topic": KAFKA_TOPIC,
-        "roast_style": ROAST_STYLE
+        "kafka_topic": KAFKA_TOPIC
     }
 
 # if __name__ == "__main__":

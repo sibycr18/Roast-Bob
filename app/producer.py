@@ -81,7 +81,7 @@ class TwitterClient:
                 self._user_id = cached_id.decode('utf-8')
             else:
                 user = self.client.get_user(username=USERNAME)
-                print(str(user.data.id))
+                # print(str(user.data.id))
                 self._user_id = str(user.data.id)
                 self.redis_client.set(f"twitter:user_id:{USERNAME}", self._user_id)
         return self._user_id
@@ -99,35 +99,50 @@ class TwitterClient:
                 max_results=5,
                 expansions=['referenced_tweets.id']
             )
-            # Print rate limit information
-            if hasattr(mentions, '_headers'):
-                rate_limit = {
-                    'limit': mentions._headers.get('x-rate-limit-limit'),
-                    'remaining': mentions._headers.get('x-rate-limit-remaining'),
-                    'reset': mentions._headers.get('x-rate-limit-reset')
-                }
-                print(f"Rate Limit Info: {rate_limit}")
-                log_info(f"Rate Limits - Remaining: {rate_limit['remaining']}/{rate_limit['limit']}, " 
-                        f"Reset at: {rate_limit['reset']}")
-                print(mentions)
 
             if not mentions.data:
                 return []
+            
+            # Collect all referenced tweet IDs
+            referenced_tweet_ids = []
+            for mention in mentions.data:
+                if mention.referenced_tweets:
+                    referenced_tweet_ids.append(str(mention.referenced_tweets[0].id))
+
+            # Fetch all referenced tweets in a single call
+            referenced_tweets = {}
+            if referenced_tweet_ids:
+                tweets_response = self.client.get_tweets(
+                    ids=referenced_tweet_ids, 
+                    tweet_fields=['text']
+                )
+                referenced_tweets = {
+                    str(tweet.id): tweet.text 
+                    for tweet in tweets_response.data or []
+                }
 
             mentions_data = []
             newest_id = last_mention_id
 
-            print(mentions.data)
+            # print(mentions.data)
 
             for mention in mentions.data:
-                mention_data = {
+                referenced_tweet_text = None
+                referenced_tweet_id = None
+
+                # Get the referenced tweet text if available
+                if mention.referenced_tweets:
+                    referenced_tweet_id = str(mention.referenced_tweets[0].id)
+                    referenced_tweet_text = referenced_tweets.get(referenced_tweet_id)
+                    mention_data = {
                     'id': str(mention.id),
                     'text': mention.text,
                     'author_id': str(mention.author_id),
                     'conversation_id': str(mention.conversation_id),
                     'created_at': mention.created_at.isoformat() if mention.created_at else None,
                     'processed_at': datetime.now().isoformat(),
-                    'referenced_tweet_id': str(mention.referenced_tweets[0].id) if mention.referenced_tweets else None
+                    'referenced_tweet_id': str(mention.referenced_tweets[0].id) if mention.referenced_tweets else None,
+                    'referenced_tweet_text': referenced_tweet_text
                 }
 
                 if not newest_id or int(mention.id) > int(newest_id):
@@ -138,6 +153,7 @@ class TwitterClient:
             if newest_id:
                 self.redis_client.set(f"twitter:last_mention:{USERNAME}", newest_id)
 
+            # print(f"{mentions_data=}")
             return mentions_data
 
         except Exception as e:
