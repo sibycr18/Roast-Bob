@@ -15,16 +15,17 @@ consumer = KafkaConsumer(
 for message in consumer:
     item = json.dumps(message.value, indent=2)
     print(f"Consumed message: {item}\n")
+    # consumer.commit()
 
-    # Check for the desired condition
-    if message.value.get('id') == '1860861236134715764':
-        print("Condition matched, committing this message.")
+    # # Check for the desired condition
+    # if message.value.get('id') == '1860861236134715764':
+    #     print("Condition matched, committing this message.")
 
-        # Get the TopicPartition for the current message
-        topic_partition = TopicPartition(message.topic, message.partition)
+    #     # Get the TopicPartition for the current message
+    #     topic_partition = TopicPartition(message.topic, message.partition)
         
-        # Commit the specific offset for this message
-        consumer.commit({
-            topic_partition: OffsetAndMetadata(message.offset + 1, '')
-        })
-        break
+    #     # Commit the specific offset for this message
+    #     consumer.commit({
+    #         topic_partition: OffsetAndMetadata(message.offset + 1, '')
+    #     })
+    #     break
