@@ -55,10 +55,15 @@ TOGETHER_API_KEY=your_together_ai_key
 # Twitter API Credentials
 TWITTER_API_KEY=your_twitter_api_key
 TWITTER_API_SECRET=your_twitter_api_secret
+# Contact me for Access Tokens of Roast_Bob_AI twitter handle
 TWITTER_ACCESS_TOKEN=your_access_token
 TWITTER_ACCESS_TOKEN_SECRET=your_access_token_secret
 TWITTER_BEARER_TOKEN_CONSUMER=your_bearer_token_for_consumer
 TWITTER_BEARER_TOKEN_PRODUCER=your_bearer_token_for_producer
+
+# Username of the account which you are using to see the mentions and reply back
+# If this is not provided, the Roast_Bob_AI account will be used as default
+USERNAME=your_user_name
 
 # Optional Configuration
 KAFKA_SERVERS=localhost:9092
