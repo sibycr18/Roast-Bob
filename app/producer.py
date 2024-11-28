@@ -19,6 +19,7 @@ wait_on_rate_limit = True
 load_dotenv()
 
 # Configuration
+# BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN_CONSUMER')
 BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN_PRODUCER')
 USERNAME = os.getenv('TWITTER_USERNAME', 'Roast_Bob_AI')
 KAFKA_SERVERS = os.getenv('KAFKA_SERVERS', 'localhost:9092')
@@ -59,13 +60,14 @@ fetch_interval = 60  # 1 minutes
 processed_count = 0
 error_count = 0
 last_fetch_time = None
+last_fetch_tried_time = None
 background_task: Optional[asyncio.Task] = None
 
 class TwitterClient:
     def __init__(self):
         self.client = tweepy.Client(
             bearer_token=BEARER_TOKEN,
-            wait_on_rate_limit=wait_on_rate_limit    # Enable/Disable rate limit
+            wait_on_rate_limit=wait_on_rate_limit    # Enable/Disable rate limit wait
         )
         self._user_id = None
         self.redis_client = redis.from_url(REDIS_URL)
@@ -105,8 +107,8 @@ class TwitterClient:
             # Collect all referenced tweet IDs
             referenced_tweet_ids = []
             for mention in mentions.data:
-                if mention.referenced_tweets:
-                    referenced_tweet_ids.append(str(mention.referenced_tweets[0].id))
+                # if mention.referenced_tweets:
+                referenced_tweet_ids.append(str(mention.conversation_id))
 
             # Fetch all referenced tweets in a single call
             referenced_tweets = {}
@@ -180,12 +182,13 @@ class TwitterClient:
 
 async def continuous_mention_fetch():
     """Background task for continuously fetching mentions"""
-    global last_fetch_time
+    global last_fetch_time, last_fetch_tried_time
     
     twitter_client = TwitterClient()
     
     while is_running.is_set():
         try:
+            last_fetch_tried_time = datetime.now().isoformat()
             mentions = await twitter_client.get_mentions()
             if mentions:
                 await twitter_client.process_mentions(mentions)
@@ -221,6 +224,7 @@ async def get_status():
     return {
         "is_running": is_running.is_set(),
         "last_fetch_time": last_fetch_time,
+        "last_fetch_tried_time": last_fetch_tried_time,
         "fetch_interval": fetch_interval,
         "processed_count": processed_count,
         "error_count": error_count

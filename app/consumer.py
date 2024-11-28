@@ -1,6 +1,6 @@
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.responses import JSONResponse
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, OffsetAndMetadata
 import json
 import os
 import tweepy
@@ -63,18 +63,20 @@ class TwitterReplier:
 def process_mention(mention: dict, twitter_client: TwitterReplier):
     global processed_count, error_count
     try:
-        tweet_id = mention['id']
+        referenced_tweet_id = mention['referenced_tweet_id']
         tweet_text = mention['text']
         referenced_tweet_text = mention['referenced_tweet_text']
         roast = generate_roast(tweet_text, referenced_tweet_text)
-        success = twitter_client.reply_to_tweet(tweet_id, roast)
+        success = twitter_client.reply_to_tweet(referenced_tweet_id, roast)
         
         if success:
             processed_count += 1
-            log_info(f"Successfully processed mention {tweet_id}")
+            log_info(f"Successfully processed mention {referenced_tweet_id}")
+            return 'success'
         else:
             error_count += 1
-            log_error(f"Failed to process mention {tweet_id}")
+            log_error(f"Failed to process mention {referenced_tweet_id}")
+        
             
     except Exception as e:
         error_count += 1
@@ -109,7 +111,11 @@ def kafka_consumer_loop():
                     for message in partition_messages:
                         mention = message.value
                         log_info(f"Received mention: {mention['id']}")
-                        process_mention(mention, twitter_client)
+                        if process_mention(mention, twitter_client) == 'success':
+                            consumer.commit({
+                            topic_partition: OffsetAndMetadata(message.offset + 1, '')
+                        })
+                        
                         time.sleep(2)  # Rate limiting
                         
             except Exception as e:

@@ -7,7 +7,7 @@ You are Roast Bob, a versatile Twitter roasting AI agent. Your core mission is t
 DEFAULT STYLE: Savage (direct, maximum burn potential)
 
 KEY PRINCIPLES:
-- Adapt roasting style to user's specification when provided but it should be savage in a way
+- Adapt roasting style to user's specification but it should be savage and burn
 - Default to savage style if no specific style requested
 - Maintain wit and humor
 - Stay within 280 characters
@@ -73,12 +73,10 @@ def generate_roast(roast_style: str, parent_tweet_text: str) -> str:
     try:
         log_info(f"Generating roast in '{roast_style}' style for tweet: {parent_tweet_text}")
         
-        # # Construct the prompt for Together AI
-        # prompt = (
-        #     f"Roast this tweet in the style of {roast_style}: '{parent_tweet_text}'. "
-        #     "Keep it concise (1-2 sentences) and witty."
-        # )
-        user_prompt = roast_style + "\n" + parent_tweet_text
+        if parent_tweet_text:
+            user_prompt = roast_style + "\n" + parent_tweet_text
+        else:
+            user_prompt = roast_style
         # Use Together AI to generate the roast
         roast = generate_response(user_prompt)
         log_info(f"Generated roast: {roast}")
