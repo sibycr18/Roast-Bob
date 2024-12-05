@@ -7,6 +7,7 @@ consumer = KafkaConsumer(
     bootstrap_servers=['localhost:9092'],
     value_deserializer=lambda m: json.loads(m.decode('utf-8')),
     group_id='twitter_roaster_group',
+    # group_id='monitor_group',
     auto_offset_reset='latest',
     enable_auto_commit=False  # Disable auto commit
 )
