@@ -5,7 +5,7 @@ import json
 import os
 import tweepy
 from roaster import generate_roast
-from logger import log_info, log_error
+from logger import setup_logger
 from dotenv import load_dotenv
 import time
 from typing import Optional
@@ -30,6 +30,9 @@ TWITTER_BEARER_TOKEN = os.getenv('TWITTER_BEARER_TOKEN_CONSUMER')
 # Initialize FastAPI
 app = FastAPI(title="Twitter Roaster Consumer Service")
 
+# Set up service-specific logger
+logger = setup_logger('twitter-consumer')
+
 # Global variables for consumer management
 consumer_thread: Optional[threading.Thread] = None
 should_consume = threading.Event()
@@ -45,7 +48,7 @@ class TwitterReplier:
             consumer_secret=TWITTER_API_SECRET,
             access_token=TWITTER_ACCESS_TOKEN,
             access_token_secret=TWITTER_ACCESS_TOKEN_SECRET,
-            wait_on_rate_limit=True
+            wait_on_rate_limit=wait_on_rate_limit
         )
 
     def reply_to_tweet(self, tweet_id: str, reply_text: str):
@@ -54,10 +57,10 @@ class TwitterReplier:
                 text=reply_text,
                 in_reply_to_tweet_id=tweet_id
             )
-            log_info(f"Successfully replied to tweet {tweet_id}")
+            logger.info(f"Successfully replied to tweet {tweet_id}")
             return True
         except Exception as e:
-            log_error(f"Error replying to tweet {tweet_id}: {str(e)}")
+            logger.error(f"Error replying to tweet {tweet_id}: {str(e)}")
             return False
 
 def process_mention(mention: dict, twitter_client: TwitterReplier):
@@ -71,16 +74,17 @@ def process_mention(mention: dict, twitter_client: TwitterReplier):
         
         if success:
             processed_count += 1
-            log_info(f"Successfully processed mention {referenced_tweet_id}")
+            logger.info(f"Successfully processed mention {referenced_tweet_id}")
+            logger.info(f"Roast: {roast}")
             return 'success'
         else:
             error_count += 1
-            log_error(f"Failed to process mention {referenced_tweet_id}")
+            logger.error(f"Failed to process mention {referenced_tweet_id}")
         
             
     except Exception as e:
         error_count += 1
-        log_error(f"Error processing mention: {str(e)}")
+        logger.error(f"Error processing mention: {str(e)}")
 
 
 def kafka_consumer_loop():
@@ -98,7 +102,7 @@ def kafka_consumer_loop():
         )
         
         twitter_client = TwitterReplier()
-        log_info("Starting Twitter mentions consumer...")
+        logger.info("Starting Twitter mentions consumer...")
         
         is_consuming.set()
         
@@ -110,7 +114,7 @@ def kafka_consumer_loop():
 
                     for message in partition_messages:
                         mention = message.value
-                        log_info(f"Received mention: {mention['id']}")
+                        logger.info(f"Received mention: {mention} {mention['id']}")
                         if process_mention(mention, twitter_client) == 'success':
                             consumer.commit({
                             topic_partition: OffsetAndMetadata(message.offset + 1, '')
@@ -119,12 +123,12 @@ def kafka_consumer_loop():
                         time.sleep(2)  # Rate limiting
                         
             except Exception as e:
-                log_error(f"Error processing message batch: {str(e)}")
+                logger.error(f"Error processing message batch: {str(e)}")
                 error_count += 1
                 continue
                 
     except Exception as e:
-        log_error(f"Fatal error in consumer: {str(e)}")
+        logger.error(f"Fatal error in consumer: {str(e)}")
     finally:
         is_consuming.clear()
         if 'consumer' in locals():

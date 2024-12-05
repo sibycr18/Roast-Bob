@@ -1,5 +1,9 @@
-from logger import log_info, log_error
+from logger import setup_logger
 from together import Together
+
+
+# Set up service-specific logger
+logger = setup_logger('roaster')
 
 system_prompt = """
 You are Roast Bob, a versatile Twitter roasting AI agent. Your core mission is to generate witty, savage and contextually appropriate roast tweets.
@@ -35,14 +39,14 @@ def generate_response(user_prompt: str) -> str:
         str: The AI-generated response.
     """
     try:
-        log_info(f"Sending prompt to Together AI: {user_prompt}")
+        logger.info(f"Sending prompt to Together AI: {user_prompt}")
         
         # Initialize Together AI client
         together = Together()
 
         # Request completion from Together AI without streaming
         response = together.chat.completions.create(
-            model="meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+            model="meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -55,7 +59,7 @@ def generate_response(user_prompt: str) -> str:
         roast = response.choices[0].message.content
         return roast.strip()
     except Exception as e:
-        log_error(f"Error interacting with Together AI: {e}")
+        logger.error(f"Error interacting with Together AI: {e}")
         raise Exception("Failed to generate response from Together AI")
 
 
@@ -71,7 +75,7 @@ def generate_roast(roast_style: str, parent_tweet_text: str) -> str:
         str: The generated roast.
     """
     try:
-        log_info(f"Generating roast in '{roast_style}' style for tweet: {parent_tweet_text}")
+        logger.info(f"Generating roast in '{roast_style}' style for tweet: {parent_tweet_text}")
         
         if parent_tweet_text:
             user_prompt = roast_style + "\n" + parent_tweet_text
@@ -79,10 +83,10 @@ def generate_roast(roast_style: str, parent_tweet_text: str) -> str:
             user_prompt = roast_style
         # Use Together AI to generate the roast
         roast = generate_response(user_prompt)
-        log_info(f"Generated roast: {roast}")
+        logger.info(f"Generated roast: {roast}")
         return roast.strip('"')
     except Exception as e:
-        log_error(f"Error generating roast: {e}")
+        logger.error(f"Error generating roast: {e}")
         raise Exception("Failed to generate roast")
 
 if __name__ == "__main__":

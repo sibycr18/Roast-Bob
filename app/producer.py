@@ -7,7 +7,7 @@ import os
 import redis
 from datetime import datetime
 from dotenv import load_dotenv
-from logger import log_info, log_error
+from logger import setup_logger
 import threading
 import asyncio
 from typing import Optional, Dict, List
@@ -28,6 +28,9 @@ KAFKA_TOPIC = 'twitter.mentions'
 
 # Initialize FastAPI
 app = FastAPI(title="Twitter Mentions Producer Service")
+
+# Set up service-specific logger
+logger = setup_logger('twitter-producer')
 
 def append_to_json(filename: str, new_item: dict):
     """
@@ -101,14 +104,19 @@ class TwitterClient:
                 expansions=['referenced_tweets.id']
             )
 
+            logger.info(f"Checked for mentions")
+
             if not mentions.data:
                 return []
+            
+            logger.info(f"{mentions=}")
             
             # Collect all referenced tweet IDs
             referenced_tweet_ids = []
             for mention in mentions.data:
                 # if mention.referenced_tweets:
                 referenced_tweet_ids.append(str(mention.conversation_id))
+            logger.info(f"{referenced_tweet_ids=}")
 
             # Fetch all referenced tweets in a single call
             referenced_tweets = {}
@@ -117,6 +125,7 @@ class TwitterClient:
                     ids=referenced_tweet_ids, 
                     tweet_fields=['text']
                 )
+                logger.info(f"{tweets_response.data=}")
                 referenced_tweets = {
                     str(tweet.id): tweet.text 
                     for tweet in tweets_response.data or []
@@ -131,7 +140,7 @@ class TwitterClient:
 
                 # Get the referenced tweet text if available
                 if mention.referenced_tweets:
-                    referenced_tweet_id = str(mention.referenced_tweets[0].id)
+                    referenced_tweet_id = str(mention.conversation_id)
                     referenced_tweet_text = referenced_tweets.get(referenced_tweet_id)
                     mention_data = {
                     'id': str(mention.id),
@@ -140,7 +149,8 @@ class TwitterClient:
                     'conversation_id': str(mention.conversation_id),
                     'created_at': mention.created_at.isoformat() if mention.created_at else None,
                     'processed_at': datetime.now().isoformat(),
-                    'referenced_tweet_id': str(mention.referenced_tweets[0].id) if mention.referenced_tweets else None,
+                    # 'referenced_tweet_id': str(mention.referenced_tweets[0].id) if mention.referenced_tweets else None,
+                    'referenced_tweet_id': referenced_tweet_id,
                     'referenced_tweet_text': referenced_tweet_text
                 }
 
@@ -152,10 +162,11 @@ class TwitterClient:
             if newest_id:
                 self.redis_client.set(f"twitter:last_mention:{USERNAME}", newest_id)
 
+            logger.info(f"{mentions_data=}")
             return mentions_data
 
         except Exception as e:
-            log_error(f"Error fetching mentions: {str(e)}")
+            logger.error(f"Error fetching mentions: {str(e)}")
             raise
 
     async def process_mentions(self, mentions: List[Dict]):
@@ -173,11 +184,11 @@ class TwitterClient:
                 )
             self.producer.flush()
             processed_count += len(mentions)
-            log_info(f"Sent {len(mentions)} mentions to Kafka")
+            logger.info(f"Sent {len(mentions)} mentions to Kafka")
             return True
         except Exception as e:
             error_count += 1
-            log_error(f"Error sending to Kafka: {str(e)}")
+            logger.error(f"Error sending to Kafka: {str(e)}")
             raise
 
 async def continuous_mention_fetch():
@@ -197,7 +208,7 @@ async def continuous_mention_fetch():
             await asyncio.sleep(fetch_interval)
             
         except Exception as e:
-            log_error(f"Error in continuous mention fetch: {str(e)}")
+            logger.error(f"Error in continuous mention fetch: {str(e)}")
             await asyncio.sleep(60)  # Wait a minute before retrying on error
 
 @app.on_event("startup")
@@ -289,7 +300,7 @@ async def manual_fetch(background_tasks: BackgroundTasks):
         return {"message": "No new mentions found"}
 
     except Exception as e:
-        log_error(f"Error in manual fetch: {str(e)}")
+        logger.error(f"Error in manual fetch: {str(e)}")
         return JSONResponse(
             status_code=500,
             content={"error": str(e)}
