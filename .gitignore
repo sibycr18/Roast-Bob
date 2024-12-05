@@ -10,3 +10,4 @@ README-copy.md
 .DS_Store
 venv/
 tempCodeRunnerFile.py
+logs/
