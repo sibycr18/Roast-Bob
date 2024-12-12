@@ -1,55 +1,29 @@
+# Bluesky Bot
 
-# Roast_Bob: Twitter Roaster Bot
+An intelligent Bluesky bot that analyzes trends, responds to mentions, and generates content using AI. The bot maintains a consistent personality while engaging with users and trending topics.
 
-A scalable Twitter agent service that automatically generates witty roasts in response to mentions using Together AI's LLaMA model. The service uses a microservices architecture with Kafka for message queuing, Redis for caching, and FastAPI for API endpoints.
+## Features
 
-## 🌟 Features
+- **Trend Analysis**: Monitors and analyzes Bluesky feed content
+- **Intelligent Responses**: Generates contextual responses to mentions
+- **Content Generation**: Creates regular posts based on trending topics
+- **Memory Management**: Stores and retrieves past interactions and opinions
+- **Roast Mode**: Special response mode for roast requests
+- **Automated Posting**: Configurable posting schedule
 
-- Real-time monitoring of Twitter mentions
-- AI-powered roast generation using Together AI's LLaMA model
-- Scalable microservices architecture
-- Rate limiting and caching with Redis
-- Kafka-based message queue for reliable processing
-- RESTful APIs for monitoring and control
-- Docker support for easy deployment
-
-## 🏗️ Architecture
-
-The service consists of two main components:
-1. **Producer Service**: Monitors Twitter for mentions and publishes them to Kafka
-2. **Consumer Service**: Processes mentions from Kafka and generates roasts using Together AI
-
-For detailed architecture information, see [Architecture Documentation](docs/ARCHITECTURE.md)
-
-## 🚀 Getting Started
-
-### Prerequisites
+## Prerequisites
 
 - Python 3.8+
-- Docker and Docker Compose
-- Twitter Developer Account with API credentials
-- Together AI API key
+- Bluesky account
+- OpenAI API key
+- ChromaDB (for memory storage)
 
-### Environment Variables
-
-Create a `.env` file with the following variables:
-
-```env
-TOGETHER_API_KEY=your_together_ai_key
-TWITTER_API_KEY=your_twitter_api_key
-TWITTER_API_SECRET=your_twitter_api_secret
-TWITTER_ACCESS_TOKEN=your_access_token
-TWITTER_ACCESS_TOKEN_SECRET=your_access_token_secret
-TWITTER_BEARER_TOKEN_CONSUMER=your_bearer_token_for_consumer
-TWITTER_BEARER_TOKEN_PRODUCER=your_bearer_token_for_producer
-```
-
-### Installation
+## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/Roast-Bob.git
-cd Roast-Bob
+git clone [repository-url]
+cd bluesky-bot
 ```
 
 2. Install dependencies:
@@ -57,13 +31,102 @@ cd Roast-Bob
 pip install -r requirements.txt
 ```
 
-For detailed setup and usage instructions, see [Setup Documentation](docs/SETUP.md)
+3. Create a `.env` file in the project root with the following:
+```env
+# Bluesky Credentials
+BLUESKY_HANDLE=your_handle
+BLUESKY_PASSWORD=your_password
 
+# OpenAI API
+OPENAI_API_KEY=your_openai_key
 
-## 👥 Contributing
+# Bot Configuration
+POSTING_INTERVAL_HOURS=4
+```
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## Project Structure
 
-## 📄 License
+```
+bluesky_bot/
+├── config/
+│   ├── __init__.py
+│   └── settings.py          # Configuration and constants
+├── clients/
+│   ├── __init__.py
+│   ├── bluesky_client.py    # Bluesky API client
+│   └── openai_client.py     # OpenAI API client
+├── services/
+│   ├── __init__.py
+│   ├── mention_handler.py   # Mention processing
+│   ├── trend_analyzer.py    # Feed analysis
+│   ├── content_generator.py # Post generation
+│   └── memory_service.py    # ChromaDB operations
+├── utils/
+│   ├── __init__.py
+│   └── logger.py           # Logging utility
+└── main.py                 # Main bot script
+```
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Usage
+
+1. Start the bot:
+```bash
+python main.py
+```
+
+The bot will automatically:
+- Monitor the Bluesky feed for trends
+- Respond to mentions
+- Generate regular posts based on trending topics
+- Store and learn from interactions
+
+## Configuration
+
+Key settings in `config/settings.py`:
+- `FEED_LIMIT`: Maximum number of feed items to analyze
+- `MAX_RESPONSE_LENGTH`: Maximum length for responses (280 characters)
+- `GPT_MODEL`: OpenAI model to use
+- `POSTING_INTERVAL_HOURS`: Hours between regular posts
+
+## Logging
+
+Logs are stored in the `logs/` directory:
+- `main.log`: General bot operation
+- `mentions.log`: Mention handling
+- `trends.log`: Trend analysis
+- `content.log`: Content generation
+- `memory.log`: Memory operations
+
+## Error Handling
+
+The bot includes comprehensive error handling:
+- API rate limit handling
+- Connection error recovery
+- Graceful shutdown on interruption
+- Service failure logging
+
+## Memory Management
+
+The bot uses ChromaDB to store:
+- Analyzed trends
+- Past interactions
+- Generated content
+- Bot opinions and thoughts
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Built using the atproto Python library
+- Powered by OpenAI's GPT-3.5
+- Uses ChromaDB for memory storage
